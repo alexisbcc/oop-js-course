@@ -34,5 +34,6 @@ const book1 = new Book('Lorax', 'Human OH', 2020);
 console.log(book1);
 book1.revise(2021)
 console.log(book1);
+console.log(book1.getSummary());
 // Call with class instead of instance
 console.log(Book.topBook());
