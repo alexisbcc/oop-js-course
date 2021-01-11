@@ -1,3 +1,55 @@
+
+class TableBuilder {
+  constructor(rows){
+    this.rows = rows;
+  }
+  // columnsToDelete = ['key1', 'key2', ...]
+  deleteTableColumns(columnsToDelete) {
+    const restColumns = Object.keys(this.rows[0])
+      .filter(item => !columnsToDelete.includes(item));
+    this.rows = this.rows.map(item => restColumns.reduce((acc, key) => ({
+      ...acc,
+      [key]: item[key]
+    }), {}));
+  }
+  // newColumnnames = {key1: key1NewName, key2: key2NewName, ...}
+  replaceTableColumnsNames(newColumnnames) {
+    this.rows = this.rows.map(item =>
+      Object.entries(item).reduce(
+        (accumulator, currentValue) => ({
+          ...accumulator,
+          ...{
+            [newColumnnames[currentValue[0]] || currentValue[0]]: currentValue[1]
+          }
+        }), {})
+    );
+  };
+
+  // columnValueCallback = {columnName: callback, ...}
+  convertTableData(columnValueCallback) {
+    const columnNames = Object.keys(this.rows[0]);
+    this.rows = this.rows.map(item =>
+      columnNames.reduce((acc, currentKey) => ({
+        ...acc,
+        [currentKey]: columnValueCallback[currentKey] ? columnValueCallback[currentKey](item[currentKey])
+                                                      : item[currentKey]
+      }), {})
+    )
+  };
+
+  orderTableColumns(firstColumnsNames) {
+    const baseColumnNames = Object.keys(this.rows[0]);
+    const columnNames = [...new Set([...firstColumnsNames, ...baseColumnNames])];
+    this.rows = this.rows.map(item =>
+        columnNames.reduce((acc, currentKey) => ({
+          ...acc,
+          [currentKey]: item[currentKey]
+        }), {})
+      )
+  };
+}
+
+
 // state.columnsToDelete = ['key1', 'key2', ...]
 const deleteTableColumns = (state) => {
   const restColumns = Object.keys(state.rows[0])
@@ -89,25 +141,37 @@ const orderedBasicTable = (rows, { firstColumnsNames=[] }={}) => {
 };
 
 let data = [
-  {telephone: 5555555, name: 'Raziel', age: 55},
-  {age: 12, telephone: 4575878, name: 'James'},
-  {name: 'Legolas', age: 25, telephone: 7495138},
-  {name: 'Harry', age: 24, telephone: 9983646},
-  {age: 27, name: 'Karmen', telephone: 4976831},
-  {name: 'Hector', age: 88, telephone: 2306898},
-  {name: 'Kain', age: 33, telephone: 7819177}
+  {telephone: 5555555, name: 'Raziel', age: 55, info: 'lala'},
+  {age: 12, telephone: 4575878, name: 'James', info: 'lala'},
+  {name: 'Legolas', age: 25, telephone: 7495138, info: 'lala'},
+  {name: 'Harry', age: 24, telephone: 9983646, info: 'lala'},
+  {age: 27, name: 'Karmen', telephone: 4976831, info: 'lala'},
+  {name: 'Hector', age: 88, telephone: 2306898, info: 'lala'},
+  {name: 'Kain', age: 33, telephone: 7819177, info: 'lala'}
 ]
 
 const columns = ['age'];
 
 
-let newTable = orderedTable(data);
-console.log(convertTableData({
-  rows: data,
-  columnValueCallback: {
-    age: (item) => item.toFixed(2)
-  }
-}));
+let newTable = new TableBuilder(data);
+console.log(newTable.rows);
+newTable.deleteTableColumns(['info'])
+console.log(newTable.rows);
+newTable.replaceTableColumnsNames({age: 'Edad'})
+console.log(newTable.rows);
+newTable.convertTableData({
+  Edad: (item) => item.toFixed(2)
+})
+console.log(newTable.rows);
+newTable.orderTableColumns(['name'])
+console.log(newTable.rows);
+
+// console.log(convertTableData({
+//   rows: data,
+//   columnValueCallback: {
+//     age: (item) => item.toFixed(2)
+//   }
+// }));
 // console.log(deleteTableColumns({rows: data, columnsToDelete: ['age']}));
 // console.log(data);
 // console.log(replaceTableColumnsNames({rows: data, newColumnnames: {age: 'Edad', name: 'Nombre'}}));
